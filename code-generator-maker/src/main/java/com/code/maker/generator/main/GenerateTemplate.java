@@ -1,8 +1,10 @@
-package com.code.maker.generator;
+package com.code.maker.generator.main;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ClassPathResource;
 import cn.hutool.core.util.StrUtil;
+import com.code.maker.generator.JarGenerator;
+import com.code.maker.generator.ScriptGenerator;
 import com.code.maker.generator.file.DynamicFileGenerator;
 import com.code.maker.meta.Meta;
 import com.code.maker.meta.MetaManager;
@@ -11,9 +13,9 @@ import freemarker.template.TemplateException;
 import java.io.File;
 import java.io.IOException;
 
-public class MainGenerator {
+public abstract class GenerateTemplate {
 
-    public static void main(String[] args) throws TemplateException, IOException, InterruptedException {
+    public void doGenerate() throws TemplateException, IOException, InterruptedException{
         Meta meta = MetaManager.getMetaObject();
 
         // 输出的根路径
@@ -23,7 +25,50 @@ public class MainGenerator {
             FileUtil.mkdir(outputPath);
         }
 
-        // 读取resources目录
+        // 1.将原始文件复制到生成代码的source包（相对路径中）
+        String sourceCopyDestPath = copySource(meta, outputPath);
+
+        // 2.读取resources目录,生成代码
+        generateCode(meta, outputPath);
+
+        // 3.构建 jar 包
+        String jarPath = buildJar(outputPath, meta);
+
+        // 4.封装脚本
+        String shellOutputFilePath = buildScript(outputPath, jarPath);
+
+        // 精简版程序（产物包）
+        buildDist(outputPath, sourceCopyDestPath, jarPath, shellOutputFilePath);
+    }
+
+    protected void buildDist(String outputPath, String sourceCopyDestPath, String jarPath, String shellOutputFilePath) {
+        String distOutputPath = outputPath + "-dist";
+        // - 拷贝 jar 包
+        String targetAbsolutePath = distOutputPath + File.separator + "target";
+        FileUtil.mkdir(targetAbsolutePath);
+        String jarAbsolutePath = outputPath + File.separator + jarPath;
+        FileUtil.copy(jarAbsolutePath, targetAbsolutePath, true);
+        // - 拷贝脚本文件
+        FileUtil.copy(shellOutputFilePath, distOutputPath, true);
+        FileUtil.copy(shellOutputFilePath + ".bat", distOutputPath, true);
+        // - 拷贝模板文件
+        FileUtil.copy(sourceCopyDestPath, distOutputPath, true);
+    }
+
+    protected String buildScript (String outputPath, String jarPath) {
+        String shellOutputFilePath = outputPath + File.separator + "generator";
+        ScriptGenerator.doGenerate(shellOutputFilePath, jarPath);
+        return shellOutputFilePath;
+    }
+
+    protected String buildJar(String outputPath, Meta meta) throws IOException, InterruptedException {
+        JarGenerator.doGenerate(outputPath);
+        String jarName = String.format("%s-%s-jar-with-dependencies.jar", meta.getName(), meta.getVersion());
+        String jarPath = "target/" + jarName;
+        return jarPath;
+    }
+
+    protected void generateCode(Meta meta, String outputPath) throws IOException, TemplateException {
         ClassPathResource classPathResource = new ClassPathResource("");
         String inputResourcePath = classPathResource.getAbsolutePath();
 
@@ -85,13 +130,16 @@ public class MainGenerator {
         outputFilePath = outputPath + File.separator + "pom.xml";
         DynamicFileGenerator.doGenerate(inputFilePath , outputFilePath, meta);
 
-        // 构建 jar 包
-        JarGenerator.doGenerate(outputPath);
+        // 生成 README.md 项目介绍文件
+        inputFilePath = inputResourcePath + File.separator + "templates/README.md.ftl";
+        outputFilePath = outputPath + File.separator + "README.md";
+        DynamicFileGenerator.doGenerate(inputFilePath , outputFilePath, meta);
+    }
 
-        // 封装脚本
-        String shellOutputFilePaht = outputPath + File.separator + "generator";
-        String jarName = String.format("%s-%s-jar-with-dependencies.jar", meta.getName(), meta.getVersion());
-        String jarPath = "target/" + jarName;
-        ScriptGenerator.doGenerate(shellOutputFilePaht, jarPath);
+    protected String copySource(Meta meta, String outputPath) {
+        String sourceRootPath = meta.getFileConfig().getSourceRootPath();
+        String sourceCopyDestPath = outputPath + File.separator + ".source";
+        FileUtil.copy(sourceRootPath, sourceCopyDestPath, false);
+        return sourceCopyDestPath;
     }
 }

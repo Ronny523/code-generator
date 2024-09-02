@@ -2,13 +2,14 @@ package com.code.maker;
 
 //import com.code.maker.cli.CommandExecutor;
 
-public class Main {
-    public static void main(String[] args) {
-//        args = new String[]{"generate", "-l", "-ListCommand.java.ftl", "-o"};
-//        args = new String[]{"config"};
-//        args = new String[]{"list"};
+import com.code.maker.generator.main.MainGenerator;
+import freemarker.template.TemplateException;
 
-//        CommandExecutor commandExecutor = new CommandExecutor();
-//        commandExecutor.doExecute(args);
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws TemplateException, IOException, InterruptedException {
+        MainGenerator mainGenerator = new MainGenerator();
+        mainGenerator.doGenerate();
     }
 }
