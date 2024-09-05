@@ -1,6 +1,8 @@
 ### Custom Template
 
 .idea
+generated
+target
 code-generator.iml
 code-generator-basic.iml
 

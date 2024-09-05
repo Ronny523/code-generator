@@ -16,7 +16,7 @@ public class FreeMarkerTest {
 
     @Test
     public void test() throws IOException, TemplateException {
-        // new 出 Configuration 对象，参数为 FreeMarker 版本号
+        // new出Configuration对象，参数为FreeMarker版本号
         Configuration configuration = new Configuration(Configuration.VERSION_2_3_32);
 
         // 指定模板文件所在的路径
@@ -38,7 +38,7 @@ public class FreeMarkerTest {
         menuItem1.put("label", "编程导航");
         Map<String, Object> menuItem2 = new HashMap<>();
         menuItem2.put("url", "https://laoyujianli.com");
-        menuItem2.put("label", "老鱼简历");
+        menuItem2.put("label", "简历");
         menuItems.add(menuItem1);
         menuItems.add(menuItem2);
         dataModel.put("menuItems", menuItems);

@@ -13,17 +13,19 @@ public class DataModel {
     // 将循环读取输入改为单次读取（可选代码）
 
     /**
-     * 作者（字符串，填充值）
+     * 是否生成 _gitignore文件
      */
-    private String author = "coder";
+    public boolean needGit = true;
 
     /**
-     * 输出信息
+     * 是否生成循环
      */
-    private String outputText = "输出结果";
+    public boolean loop = false;
 
     /**
-     * 是否循环（开关）
+     * 核心模板
      */
-    private boolean loop;
+    public String author = "yupi";
+
+    public String outputText = "sum = ";
 }
