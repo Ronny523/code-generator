@@ -29,7 +29,7 @@ public class DataModel {
      * ${modelInfo.description}
      */
     @Data
-    public static class MainTemplate {
+    public static class ${modelInfo.type} {
         <#list modelInfo.models as modelInfo>
             <@generateModel indent="        " modelInfo=modelInfo/>
         </#list>
